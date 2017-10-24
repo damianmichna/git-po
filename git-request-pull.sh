@@ -4,9 +4,6 @@
 # This file is licensed under the GPL v2, or a later version
 # at the discretion of Linus Torvalds.
 
-USAGE='<start> <url> [<end>]'
-LONG_USAGE='Summarizes the changes between two commits to the standard output,
-and includes the given URL in the generated summary.'
 SUBDIRECTORY_OK='Yes'
 OPTIONS_KEEPDASHDASH=
 OPTIONS_STUCKLONG=
@@ -119,13 +116,19 @@ then
 	status=1
 fi
 
+# Special case: turn "for_linus" to "tags/for_linus" when it is correct
+if test "$ref" = "refs/tags/$pretty_remote"
+then
+	pretty_remote=tags/$pretty_remote
+fi
+
 url=$(git ls-remote --get-url "$url")
 
 git show -s --format='The following changes since commit %H:
 
   %s (%ci)
 
-are available in the git repository at:
+are available in the Git repository at:
 ' $merge_base &&
 echo "  $url $pretty_remote" &&
 git show -s --format='

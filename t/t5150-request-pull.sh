@@ -68,7 +68,7 @@ test_expect_success 'setup: two scripts for reading pull requests' '
 	cat <<-\EOT >read-request.sed &&
 	#!/bin/sed -nf
 	# Note that a request could ask for "tag $tagname"
-	/ in the git repository at:$/!d
+	/ in the Git repository at:$/!d
 	n
 	/^$/ n
 	s/ tag \([^ ]*\)$/ tag--\1/
@@ -192,7 +192,7 @@ test_expect_success 'pull request format' '
 
 	  SUBJECT (DATE)
 
-	are available in the git repository at:
+	are available in the Git repository at:
 
 	  URL BRANCH
 
@@ -223,7 +223,13 @@ test_expect_success 'pull request format' '
 		git request-pull initial "$downstream_url" tags/full:refs/tags/full
 	) >request &&
 	sed -nf fuzz.sed <request >request.fuzzy &&
-	test_i18ncmp expect request.fuzzy
+	test_i18ncmp expect request.fuzzy &&
+
+	(
+		cd local &&
+		git request-pull initial "$downstream_url" full
+	) >request &&
+	grep " tags/full\$" request
 '
 
 test_expect_success 'request-pull ignores OPTIONS_KEEPDASHDASH poison' '

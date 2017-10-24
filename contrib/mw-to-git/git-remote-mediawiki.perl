@@ -461,7 +461,12 @@ sub download_mw_mediafile {
 
 	my $response = $mediawiki->{ua}->get($download_url);
 	if ($response->code == HTTP_CODE_OK) {
-		return $response->decoded_content;
+		# It is tempting to return
+		# $response->decoded_content({charset => "none"}), but
+		# when doing so, utf8::downgrade($content) fails with
+		# "Wide character in subroutine entry".
+		$response->decode();
+		return $response->content();
 	} else {
 		print {*STDERR} "Error downloading mediafile from :\n";
 		print {*STDERR} "URL: ${download_url}\n";
@@ -852,7 +857,7 @@ sub mw_import_revids {
 
 	my $n = 0;
 	my $n_actual = 0;
-	my $last_timestamp = 0; # Placeholer in case $rev->timestamp is undefined
+	my $last_timestamp = 0; # Placeholder in case $rev->timestamp is undefined
 
 	foreach my $pagerevid (@{$revision_ids}) {
 	        # Count page even if we skip it, since we display
@@ -958,7 +963,7 @@ sub mw_upload_file {
 		print {*STDERR} "Check the configuration of file uploads in your mediawiki.\n";
 		return $newrevid;
 	}
-	# Deleting and uploading a file requires a priviledged user
+	# Deleting and uploading a file requires a privileged user
 	if ($file_deleted) {
 		$mediawiki = connect_maybe($mediawiki, $remotename, $url);
 		my $query = {

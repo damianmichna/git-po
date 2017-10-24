@@ -223,7 +223,8 @@ test_expect_success 'Commit without message is allowed with --allow-empty-messag
 	git add foo &&
 	>empty &&
 	git commit --allow-empty-message <empty &&
-	commit_msg_is ""
+	commit_msg_is "" &&
+	git tag empty-message-commit
 '
 
 test_expect_success 'Commit without message is no-no without --allow-empty-message' '
@@ -238,6 +239,14 @@ test_expect_success 'Commit a message with --allow-empty-message' '
 	git add foo &&
 	git commit --allow-empty-message -m"hello there" &&
 	commit_msg_is "hello there"
+'
+
+test_expect_success 'commit -C empty respects --allow-empty-message' '
+	echo more >>foo &&
+	git add foo &&
+	test_must_fail git commit -C empty-message-commit &&
+	git commit -C empty-message-commit --allow-empty-message &&
+	commit_msg_is ""
 '
 
 commit_for_rebase_autosquash_setup () {
@@ -318,6 +327,29 @@ test_expect_success 'invalid message options when using --fixup' '
 	test_must_fail git commit --fixup HEAD~1 -c HEAD~2 &&
 	test_must_fail git commit --fixup HEAD~1 -m "cmdline message" &&
 	test_must_fail git commit --fixup HEAD~1 -F log
+'
+
+cat >expected-template <<EOF
+
+# Please enter the commit message for your changes. Lines starting
+# with '#' will be ignored, and an empty message aborts the commit.
+#
+# Author:    A U Thor <author@example.com>
+#
+# On branch commit-template-check
+# Changes to be committed:
+#	new file:   commit-template-check
+#
+# Untracked files not listed
+EOF
+
+test_expect_success 'new line found before status message in commit template' '
+	git checkout -b commit-template-check &&
+	git reset --hard HEAD &&
+	touch commit-template-check &&
+	git add commit-template-check &&
+	GIT_EDITOR="cat >editor-input" git commit --untracked-files=no --allow-empty-message &&
+	test_i18ncmp expected-template editor-input
 '
 
 test_done

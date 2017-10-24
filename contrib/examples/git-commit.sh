@@ -51,7 +51,7 @@ run_status () {
 		export GIT_INDEX_FILE
 	fi
 
-	if test "$status_only" = "t" -o "$use_status_color" = "t"; then
+	if test "$status_only" = "t" || test "$use_status_color" = "t"; then
 		color=
 	else
 		color=--nocolor
@@ -296,7 +296,7 @@ t,,,[1-9]*)
 	die "No paths with -i does not make sense." ;;
 esac
 
-if test ! -z "$templatefile" -a -z "$log_given"
+if test ! -z "$templatefile" && test -z "$log_given"
 then
 	if test ! -f "$templatefile"
 	then
@@ -574,10 +574,10 @@ then
 	if test "$templatefile" != ""
 	then
 		# Test whether this is just the unaltered template.
-		if cnt=`sed -e '/^#/d' < "$templatefile" |
+		if cnt=$(sed -e '/^#/d' < "$templatefile" |
 			git stripspace |
 			diff "$GIT_DIR"/COMMIT_BAREMSG - |
-			wc -l` &&
+			wc -l) &&
 		   test 0 -lt $cnt
 		then
 			have_commitmsg=t
@@ -630,8 +630,8 @@ then
 	fi
 	if test -z "$quiet"
 	then
-		commit=`git diff-tree --always --shortstat --pretty="format:%h: %s"\
-		       --abbrev --summary --root HEAD --`
+		commit=$(git diff-tree --always --shortstat --pretty="format:%h: %s"\
+		       --abbrev --summary --root HEAD --)
 		echo "Created${initial_commit:+ initial} commit $commit"
 	fi
 fi
